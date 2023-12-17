@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: mysql-app
+  namespace: my-flask-app
+  labels:
+    app_name: mysql
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app_name: mysql
+  template:
+    metadata:
+      labels:
+        app_name: mysql
+    spec:
+      containers:
+        - name: mysql-db
+          image: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "12345"
+            - name: MYSQL_DATABASE
+              value: "self_db"
+            - name: MYSQL_USER
+              value: "my_admin"
+            - name: MYSQL_PASSWORD
+              value: "my_admin"
+          volumeMounts:
+            - name: mysqldata
+              mountPath: /var/lib/mysql
+            - name: mysql-query
+              mountPath: docker-entrypoint-initdb.d
+          ports:
+            - containerPort: 3306
+
+      volumes:
+        - name: mysqldata
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+        - name: mysql-query
+          configMap:
+            name: mysql-query-config
